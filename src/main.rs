@@ -3,275 +3,141 @@
 use dioxus::prelude::*;
 use tracing::Level;
 
-// use bevy_image_export::*;
+use bevy::{
+    app::ScheduleRunnerPlugin,
+    log::LogPlugin,
+    prelude::*,
+    render::{
+        render_asset::RenderAssetUsages,
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
+    },
+    utils::Duration,
+};
 
-// use std::f32::consts::PI;
+use bevy_image_export::*;
 
-// use bevy::{
-//     prelude::*,
-//     render::{
-//         render_resource::{
-//             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-//         },
-//         view::RenderLayers,
-//     },
-//     text::{BreakLineOn, Text2dBounds},
-// };
-// use iyes_perf_ui::prelude::*;
+use std::f32::consts::PI;
+
+use std::thread;
 
 fn main() {
-    // let export_plugin = ImageExportPlugin::default();
-    // let export_threads = export_plugin.threads.clone();
+    thread::spawn(|| {
+        // let export_plugin = ImageExportPlugin::default();
+        // let export_threads = export_plugin.threads.clone();
+
+        App::new()
+            // .add_plugins(DefaultPlugins)
+            // .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
+            .add_plugins(MinimalPlugins.set(ScheduleRunnerPlugin::run_once()))
+            // .add_plugins(export_plugin)
+            // .add_plugins(plugins)
+            // .add_systems(Startup, setup)
+            .add_systems(Update, hello_world_system)
+            .run();
+        // export_threads.finish();
+        //
+        App::new()
+            .add_plugins(MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(
+                Duration::from_secs_f64(1.0 / 60.0),
+            )))
+            .add_systems(Update, counter)
+            .run();
+    });
 
     // Init logger
     dioxus_logger::init(Level::INFO).expect("failed to init logger");
-    launch(App);
 
-    // App::new()
-    //     // .add_plugins(DefaultPlugins.set(WindowPlugin {
-    //     //     primary_window: Some(Window {
-    //     //         // provide the ID selector string here
-    //     //         canvas: Some("#mygame-canvas".into()),
-    //     //         // ... any other window properties ...
-    //     //         ..default()
-    //     //     }),
-    //     //     ..default()
-    //     // }))
-    //     .add_plugins(DefaultPlugins)
-    //     // Performance Overlay
-    //     .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
-    //     .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
-    //     .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
-    //     .add_plugins(PerfUiPlugin)
-    //     .add_plugins(export_plugin)
-    //     // Systems
-    //     // .add_systems(Startup, setup)
-    //     // .add_systems(Update, bevy::window::close_on_esc)
-    //     .add_systems(Startup, gen_texture)
-    //     .run();
-
-    // launch(App);
-    // export_threads.finish();
+    dioxus::launch(App);
 }
 
-// Marks the first pass cube (rendered to a texture.)
-// #[derive(Component)]
-// struct FirstPassCube;
-//
-// // Marks the main pass cube, to which the texture is applied.
-// #[derive(Component)]
-// struct MainPassCube;
+fn hello_world_system() {
+    println!("hello world");
+}
+
+fn counter(mut state: Local<CounterState>) {
+    let mut counter = use_signal(|| 0);
+    if state.count % 60 == 0 {
+        println!("{}", state.count);
+    }
+    state.count += 1;
+    counter += 1;
+}
+
+#[derive(Default, PartialEq, Props, Clone)]
+struct CounterState {
+    count: u32,
+}
 
 fn App() -> Element {
-    // Build cool things ✌️
-    //
-    // let ws: Coroutine<()> = use_coroutine(|rx| async move {
-    //     println!("Hello World!");
-    // });
-
     rsx! {
-        div { "Hello World" }
-        // ImageTest {}
+        Counting { count: 0 }
     }
 }
 
-// #[server(PostServerData)]
-// async fn post_server_data(data: String) -> Result<(), ServerFnError> {
-//     info!("Server received: {}", data);
-//     Ok(())
-// }
-//
-// #[server(GetServerData)]
-// async fn get_server_data() -> Result<String, ServerFnError> {
-//     Ok("Hello from the server!".to_string())
-// }
+fn Counting(props: CounterState) -> Element {
+    rsx! {
+        b { "{props.count}" }
+    }
+}
 
-// fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-//     // let texture_handle: Handle<Image> = asset_server.load("Fear.png");
-//     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
-//
-//     // commands.spawn(Camera2dBundle::default());
-//     commands.spawn(SpriteSheetBundle {
-//         texture: asset_server.load("Fear.png"),
-//         ..default()
-//     });
-//     // commands.spawn(Text2dBundle {
-//     //     text: Text::from_section("rotation", text_style.clone()),
-//     //     transform: Transform::from_translation(250. * Vec3::Y),
-//     //     ..default()
-//     // });
-//
-//     // commands.spawn(PerfUiCompleteBundle::default());
-//     // commands.spawn((
-//     //     PerfUiRoot::default(),
-//     //     PerfUiEntryFPS::default(),
-//     //     // PerfUiEntryClock::default(),
-//     // ));
-//     //
-//     let slightly_smaller_text_style = TextStyle {
-//         font,
-//         font_size: 42.0,
-//         color: Color::WHITE,
-//     };
-//
-//     let box_size = Vec2::new(300.0, 200.0);
-//     let box_position = Vec2::new(0.0, -250.0);
-//
-//     commands
-//         .spawn(SpriteBundle {
-//             sprite: Sprite {
-//                 color: Color::rgb(0.25, 0.25, 0.75),
-//                 custom_size: Some(Vec2::new(box_size.x, box_size.y)),
-//                 ..default()
-//             },
-//             transform: Transform::from_translation(box_position.extend(0.0)),
-//             ..default()
-//         })
-//         .with_children(|builder| {
-//             builder.spawn(Text2dBundle {
-//                 text: Text {
-//                     sections: vec![TextSection::new(
-//                         "this text wraps in the box\n(Unicode linebreaks)",
-//                         slightly_smaller_text_style.clone(),
-//                     )],
-//                     justify: JustifyText::Left,
-//                     linebreak_behavior: BreakLineOn::WordBoundary,
-//                 },
-//                 text_2d_bounds: Text2dBounds {
-//                     // Wrap text in the rectangle
-//                     size: box_size,
-//                 },
-//                 // ensure the text is drawn on top of the box
-//                 transform: Transform::from_translation(Vec3::Z),
-//                 ..default()
-//             });
-//         });
-// }
-//
-// fn gen_texture(
-//     mut commands: Commands,
-//     mut meshes: ResMut<Assets<Mesh>>,
-//     mut materials: ResMut<Assets<StandardMaterial>>,
-//     mut images: ResMut<Assets<Image>>,
-//     mut export_sources: ResMut<Assets<ImageExportSource>>,
-// ) {
-//     let size = Extent3d {
-//         width: 512,
-//         height: 512,
-//         ..default()
-//     };
-//
-//     let mut image = Image {
-//         texture_descriptor: TextureDescriptor {
-//             label: None,
-//             size,
-//             dimension: TextureDimension::D2,
-//             format: TextureFormat::Bgra8UnormSrgb,
-//             mip_level_count: 1,
-//             sample_count: 1,
-//             usage: TextureUsages::TEXTURE_BINDING
-//                 | TextureUsages::COPY_DST
-//                 | TextureUsages::COPY_SRC
-//                 | TextureUsages::RENDER_ATTACHMENT,
-//             view_formats: &[],
-//         },
-//         ..default()
-//     };
-//
-//     image.resize(size);
-//
-//     let image_handle = images.add(image);
-//
-//     let cube_handle = meshes.add(Cuboid::new(4.0, 4.0, 4.0));
-//     let cube_material_handle = materials.add(StandardMaterial {
-//         base_color: Color::rgb(0.8, 0.7, 0.6),
-//         reflectance: 0.02,
-//         unlit: false,
-//         ..default()
-//     });
-//
-//     let first_pass_layer = RenderLayers::layer(1);
-//
-//     commands.spawn((
-//         PbrBundle {
-//             mesh: cube_handle,
-//             material: cube_material_handle,
-//             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-//             ..default()
-//         },
-//         FirstPassCube,
-//         first_pass_layer,
-//     ));
-//
-//     commands.spawn((
-//         PointLightBundle {
-//             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-//             ..default()
-//         },
-//         RenderLayers::all(),
-//     ));
-//
-//     commands.spawn((
-//         Camera3dBundle {
-//             camera: Camera {
-//                 // render before the "main pass" camera
-//                 order: -1,
-//                 target: image_handle.clone().into(),
-//                 clear_color: Color::WHITE.into(),
-//                 ..default()
-//             },
-//             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
-//                 .looking_at(Vec3::ZERO, Vec3::Y),
-//             ..default()
-//         },
-//         first_pass_layer,
-//     ));
-//
-//     let cube_size = 4.0;
-//     let cube_handle = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
-//
-//     // This material has the texture that has been rendered.
-//     let material_handle = materials.add(StandardMaterial {
-//         base_color_texture: Some(image_handle.clone()),
-//         reflectance: 0.02,
-//         unlit: false,
-//         ..default()
-//     });
-//
-//     // Main pass cube, with material containing the rendered first pass texture.
-//     commands.spawn((
-//         PbrBundle {
-//             mesh: cube_handle,
-//             material: material_handle,
-//             transform: Transform::from_xyz(0.0, 0.0, 1.5)
-//                 .with_rotation(Quat::from_rotation_x(-PI / 5.0)),
-//             ..default()
-//         },
-//         MainPassCube,
-//     ));
-//
-//     // The main pass camera.
-//     commands.spawn(Camera3dBundle {
-//         transform: Transform::from_xyz(0.0, 0.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
-//         ..default()
-//     });
-//
-//     commands.spawn(ImageExportBundle {
-//         source: export_sources.add(image_handle),
-//         settings: ImageExportSettings {
-//             // Frames will be saved to "./out/[#####].png".
-//             output_dir: "out".into(),
-//             // Choose "exr" for HDR renders.
-//             extension: "png".into(),
-//         },
-//     });
-// }
+#[derive(Component)]
+struct Shape;
 
-// #[component]
-// fn ImageTest() -> Element {
-//     rsx! {
-//         div { "Hello World!" }
-//         img { src: "Fear.png", id: "test" }
-//         // canvas { height: "720", width: "1280", id: "mygame-canvas" }
-//     }
-// }
+const X_EXTENT: f32 = 12.0;
+
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // let debug_material = materials.add(StandardMaterial {
+    //     base_color_texture: Some(images.add(uv_debug_texture())),
+    //     ..default()
+    // });
+
+    let shapes = [
+        meshes.add(Cuboid::default()),
+        meshes.add(Capsule3d::default()),
+        meshes.add(Torus::default()),
+        meshes.add(Cylinder::default()),
+        meshes.add(Sphere::default().mesh().ico(5).unwrap()),
+        meshes.add(Sphere::default().mesh().uv(32, 18)),
+    ];
+
+    let num_shapes = shapes.len();
+
+    for (i, shape) in shapes.into_iter().enumerate() {
+        commands.spawn((
+            PbrBundle {
+                mesh: shape,
+                // material: debug_material.clone(),
+                transform: Transform::from_xyz(
+                    -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
+                    2.0,
+                    0.0,
+                )
+                .with_rotation(Quat::from_rotation_x(-PI / 4.)),
+                ..default()
+            },
+            Shape,
+        ));
+    }
+
+    commands.spawn(PointLightBundle {
+        point_light: PointLight {
+            shadows_enabled: true,
+            intensity: 10_000_000.,
+            range: 100.0,
+            shadow_depth_bias: 0.2,
+            ..default()
+        },
+        transform: Transform::from_xyz(8.0, 16.0, 8.0),
+        ..default()
+    });
+
+    commands.spawn(Camera3dBundle {
+        transform: Transform::from_xyz(0.0, 6., 12.0).looking_at(Vec3::new(0., 1., 0.), Vec3::Y),
+        ..Default::default()
+    });
+}

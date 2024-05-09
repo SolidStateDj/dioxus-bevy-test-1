@@ -4,7 +4,7 @@
 /packages/playwright-tests/fullstack/dist
 /dist
 .DS_Store
-/examples/assets/test_video.mp4
+/out
 
 # new recommendation to keep the lockfile in for CI and reproducible builds
 # Cargo.lock

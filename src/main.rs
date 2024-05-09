@@ -55,12 +55,12 @@ fn hello_world_system() {
 }
 
 fn counter(mut state: Local<CounterState>) {
-    let mut counter = use_signal(|| 0);
+    // let mut counter = use_signal(|| 0);
     if state.count % 60 == 0 {
         println!("{}", state.count);
     }
     state.count += 1;
-    counter += 1;
+    // counter += 1;
 }
 
 #[derive(Default, PartialEq, Props, Clone)]

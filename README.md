@@ -1,7 +1,7 @@
 
 
-Launch the Dioxus Fullstack app:
+Launch the Dioxus Desktop app:
 
 ```bash
-dx serve --platform fullstack
+dx serve
 ```
